@@ -6,4 +6,5 @@ openai
 python-dotenv
 streamlit
 pip install langchain_community
+langchain-ollama
 
