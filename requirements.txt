@@ -5,6 +5,9 @@ langserve
 openai
 python-dotenv
 streamlit
-pip install langchain_community
+langchain_community
 langchain-ollama
 
+langserve
+fastapi
+uvicorn
