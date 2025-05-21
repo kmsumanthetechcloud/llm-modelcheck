@@ -1,35 +1,61 @@
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-
-import streamlit as st
-import os
+from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
+from langserve import add_routes
+from fastapi import FastAPI
+import uvicorn
+from langchain_community.llms import Ollama
 from dotenv import load_dotenv
+
+import os
 
 load_dotenv()
 os.environ["OPENAI_API_KEY"]=os.getenv("OPENAI_API_KEY")
-## Langmith tracking
-os.environ["LANGCHAIN_TRACING_V2"]="true"
-os.environ["LANGCHAIN_API_KEY"]=os.getenv("LANGCHAIN_API_KEY")
 
-## Prompt Template
+app=FastAPI(
 
-prompt=ChatPromptTemplate.from_messages(
-    [
-        ("system","You are a helpful assistant. Please response to the user queries"),
-        ("user","Question:{question}")
-    ]
+    title="Langchain Server",
+    version="1.0",
+    description="A Simple API Server"
 )
 
-## streamlit framework
 
-st.title('Langchain Demo With OPENAI API')
-input_text=st.text_input("Search the topic u want")
+add_routes(
+    app,
+    ChatOpenAI(),
+    path="/openai"
 
-# openAI LLm 
-llm=ChatOpenAI(model="gpt-4.o-mini")
-output_parser=StrOutputParser()
-chain=prompt|llm|output_parser
+)
+#model=ChatPromptTemplate("your prompt string")
+model = ChatPromptTemplate.from_template("your prompt string")## ollama llm model
+llm=Ollama(model="gemma3:1b")
 
-if input_text:
-    st.write(chain.invoke({'question':input_text}))
+prompt1=ChatPromptTemplate.from_template("write me an essay about {topic} with 20 words")
+prompt2=ChatPromptTemplate.from_template("write me an poem about {topic} for a five year girl")
+
+
+add_routes(
+    app,
+    prompt1|model,
+    path="/essay"
+
+
+)
+
+
+add_routes(
+    app,
+    prompt2|llm,
+    path="/poem"
+)
+
+if __name__=="__main__":
+    uvicorn.run(app,host="localhost",port=8000)
+
+
+
+
+
+
+
